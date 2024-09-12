@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => TelaA(),
         '/telaB': (context) => TelaB(),
         '/telaC': (context) => TelaC(),
-        '/telaD' : (context) => TelaD()
+        '/telaD': (context) => TelaD()
       },
     );
   }
@@ -28,52 +28,46 @@ class TelaA extends StatefulWidget {
 class TelaB extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final List<String> items = ['Item 1', 'Item 2', 'Item 3'];
     return Scaffold(
-      appBar: AppBar(title: Text('Tela B')),
-      body: Align(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            const Text(
-              'ListView Options',
-              style: TextStyle(fontSize: 24.0, color: Colors.blue),
-            ),
-            Container(
+        appBar: AppBar(title: Text('Lista de Produtos')),
+        body: Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              margin: EdgeInsets.only(top: 20), // Para dar um espaço da AppBar
               width: 200,
-              height: 100,
+              height: 200,
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Colors.grey,
                   width: 1.0,
                 ),
               ),
-              child: ListView.builder(
-                shrinkWrap: true, // if scroll
-                itemCount: items.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    //leading: Image(image: items[index]),
-                    title: Text(items[index]),
-                    //subtitle: Text(items[index]),
-                    onLongPress: () {
-                      Navigator.pushReplacementNamed(context, '/TelaC');
+              child: ListView(
+                children: [
+                  ListTile(
+                    title: Text('item 1'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/telaC',
+                          arguments: 'item 1');
                     },
-                  );
-                },
+                  ),
+                  ListTile(
+                    title: Text('item 2'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/telaC',
+                          arguments: 'item 2');
+                    },
+                  ),
+                  ListTile(
+                    title: Text('item 3'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/telaC',
+                          arguments: 'item 3');
+                    },
+                  ),
+                ],
               ),
-            ),
-            ElevatedButton(
-              child: Text('Voltar para Tela A'),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/');
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+            )));
   }
 }
 
@@ -87,12 +81,33 @@ class TelaD extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Tela D')),
-      body: Center(
-        child: ElevatedButton(
-          child: Text('Voltar'),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/TelaB');
-          },
+      body: Align(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            // Espaço entre o texto e a imagem
+            Image.network(
+              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMyFsZ5sV7Bb2KdP56_lWbKkvxEijuWIlQRw&s',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Pedido Confirmado',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 50),
+            ElevatedButton(
+              child: Text('Voltar'),
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/telaB');
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -128,40 +143,12 @@ class FormsState extends State<TelaA> {
     String nome = _nome.text;
     String email = _email.text;
 
-    // altera state textColor
-    void changeTextColor(Color newColor) {
-      setState(() {
-        textColor = newColor;
-      });
-    }
-
-    // altera cor da borda
-    void changeBorderColor(Color newColor) {
-      setState(() {
-        borderColor = newColor;
-      });
-    }
-
     // define resposta
     setState(() {
-      if (nome == "" || email == "") {
-        changeTextColor(Colors.red);
-        if (nome == "") {
-          _result = "Campo nome obrigatório";
-        } 
-        if (email == "") {
-          _result = "Campo Item obrigatório";
-        }      
-
-        //altera cor da borda para indicar
-        changeBorderColor(Colors.red);        
-      } else {
-        Navigator.pushReplacementNamed(context, '/telaB');
-        _result = '$email $nome';
-      }
+      Navigator.pushReplacementNamed(context, '/telaB');
+      _result = '$email $nome';
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -172,11 +159,12 @@ class FormsState extends State<TelaA> {
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            const Text(
-              'Sample Input',
-              style: TextStyle(fontSize: 24.0, color: Colors.blue),
+            Image.network(
+              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMyFsZ5sV7Bb2KdP56_lWbKkvxEijuWIlQRw&s',
+              width: 200,
+              height: 200,
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 50),
             SizedBox(
                 // label para primeiro número
                 width: 300,
@@ -213,22 +201,18 @@ class FormsState extends State<TelaA> {
                   ),
                 )),
             const Divider(),
-            !envio
-                ? SizedBox(
-                    // label para primeiro número
-                    width: 300,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _enviar,
-                          child: const Text('Enviar'),
-                        ),
-                      ],
-                    ))
-                : const SizedBox.shrink(),   
-            
-         
+            SizedBox(
+                // label para primeiro número
+                width: 300,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _enviar,
+                      child: const Text('Enviar'),
+                    ),
+                  ],
+                )),
           ],
         ),
       ),
@@ -240,7 +224,7 @@ class Itens extends State<TelaC> {
   //define conteúdo de listView
 
   // controller para input nome
-  final TextEditingController _nome = TextEditingController();
+  final TextEditingController _quantidade = TextEditingController();
   // define cores para mensagens de aviso
   Color textColor = Colors.black; // default color
   Color textColorWarning = Colors.grey; // default color
@@ -261,56 +245,20 @@ class Itens extends State<TelaC> {
   // botão de envio
   void _enviar() {
     //obtém informações do usuário
-    String nome = _nome.text;
+    String nome = _quantidade.text;
     String selecionado = _selectItem;
-
-    // altera state textColor
-    void changeTextColor(Color newColor) {
-      setState(() {
-        textColor = newColor;
-      });
-    }
-
-    // altera cor da borda
-    void changeBorderColor(Color newColor) {
-      setState(() {
-        borderColor = newColor;
-      });
-    }
-
-    void changeEnvio(bool e) {
-      setState(() {
-        envio = e;
-      });
-    }
 
     // define resposta
     setState(() {
-      if (nome == "" || selecionado == "") {
-        changeTextColor(Colors.red);
-        if (nome == "") {
-          _result = "Campo nome obrigatório";
-        } else if (selecionado == "") {
-          _result = "Campo Item obrigatório";
-        }
-        //altera cor da borda para indicar
-        changeBorderColor(Colors.red);
-      } else {
-        changeEnvio(true);
-        changeTextColor(Colors.red);
-        changeBorderColor(Colors.grey);
-
-        _result = nome;
-        _selectItem = selecionado;
-        _result = '$selecionado $nome';
-      }
+      _result = '$selecionado $nome';
+      Navigator.pushReplacementNamed(context, '/telaD');
     });
   }
 
   // cancela
   void _cancelar() {
-    _nome.text = "";
-    String nome = _nome.text;
+    _quantidade.text = "";
+    String nome = _quantidade.text;
     String sel = _selectItem;
 
     // define resposta
@@ -321,27 +269,41 @@ class Itens extends State<TelaC> {
 
   @override
   Widget build(BuildContext context) {
+    final String produto = ModalRoute.of(context)?.settings.arguments as String;
+    final TextEditingController _nome = TextEditingController(text: produto);
+
     return Scaffold(
-      appBar: AppBar(title: Text('Tela A')),
+      appBar: AppBar(title: Text('Detalhes da compra')),
       body: Align(
         alignment: Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            const Text(
-              'Sample Input',
-              style: TextStyle(fontSize: 24.0, color: Colors.blue),
-            ),
-            const SizedBox(height: 16.0),
+            SizedBox(
+                width: 300,
+                child: TextField(
+                  controller:
+                      _nome, // Aqui o controlador já está com o texto inicial
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    hintText: 'Entre com a quantidade',
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: borderColor),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                  ),
+                )),
+            const SizedBox(height: 20),
             SizedBox(
                 // label para primeiro número
                 width: 300,
                 child: TextField(
-                  controller: _nome,
+                  controller: _quantidade,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    hintText: 'Entre com nome',
-                    prefixIcon: const Icon(Icons.account_circle_outlined),
+                    hintText: 'Entre com a quantidade',
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: borderColor),
                     ),
@@ -351,36 +313,22 @@ class Itens extends State<TelaC> {
                   ),
                 )),
             const SizedBox(height: 16.0),
-            const Divider(),
-            !envio
-                ? SizedBox(
-                    // label para primeiro número
-                    width: 300,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _enviar,
-                          child: const Text('Enviar'),
-                        ),
-                        ElevatedButton(
-                          onPressed: _cancelar,
-                          child: const Text('Cancelar'),
-                        ),
-                      ],
-                    ))
-                : const SizedBox.shrink(),
-            const SizedBox(height: 16.0),
-            Text(
-              'Resposta: $_result',
-              style: TextStyle(fontSize: 24.0, color: textColor),
-            ),
-            ElevatedButton(
-          child: Text('Ir para Tela B'),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/telaB');
-          },
-          ),
+            SizedBox(
+                // label para primeiro número
+                width: 300,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _enviar,
+                      child: const Text('Enviar'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _cancelar,
+                      child: const Text('Cancelar'),
+                    ),
+                  ],
+                ))
           ],
         ),
       ),
