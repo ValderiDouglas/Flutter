@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 //inicia aplicação
 void main() {
   runApp(MyApp()); //cria e executa instância
@@ -15,7 +16,6 @@ class MyApp extends StatelessWidget {
         '/': (context) => TelaA(),
         '/telaB': (context) => TelaB(),
         '/telaC': (context) => TelaC(),
-        '/telaD': (context) => TelaD()
       },
     );
   }
@@ -38,12 +38,12 @@ class StateA extends State<TelaA> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tela A')),
       body: Align(
         alignment: Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
+            const SizedBox(height: 150),
             Image.network(
               'https://files.cercomp.ufg.br/weby/up/1/o/Logo_Escola_do_Futuro_jan23.png?1674135062',
               width: 200,
@@ -75,7 +75,6 @@ class TelaB extends StatefulWidget {
 }
 
 class StateB extends State<TelaB> {
-
   final TextEditingController _nome = TextEditingController();
   final TextEditingController _email = TextEditingController();
   // define cores para mensagens de aviso
@@ -96,28 +95,67 @@ class StateB extends State<TelaB> {
   }
 
   // botão de envio
-  void _enviar() {
-    //obtém informações do usuário
+
+  void _enviar() async {
+    // Obtém informações do usuário
     String nome = _nome.text;
     String email = _email.text;
 
-    // define resposta
-    setState(() {
-      Navigator.pushReplacementNamed(context, '/telaC');
-      _result = '$email $nome';
-    });
+    // Cria um mapa com os dados
+    Map<String, String> data = {
+      'nome': nome,
+      'email': email,
+    };
+
+    // Define a URL
+    String url = 'http://demo7630410.mockable.io/login';
+
+    try {
+      // Envia os dados em formato JSON
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(data),
+          )
+          .timeout(Duration(seconds: 3)); // Timeout de 3 segundos
+
+      // Verifica se a requisição foi bem-sucedida
+      if (response.statusCode == 200) {
+        // Exibe a resposta
+        final jsonResponse = json.decode(response.body);
+        setState(() {
+          _result = jsonResponse['token'];
+        });
+
+        // Navega para a telaC após 3 segundos
+        await Future.delayed(Duration(seconds: 3));
+        Navigator.pushReplacementNamed(context, '/telaC');
+      } else {
+        // Lida com erro da resposta
+        setState(() {
+          _result = 'Erro: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      // Lida com exceções (como timeout)
+      setState(() {
+        _result = 'Erro: $e';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tela A')),
       body: Align(
         alignment: Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            const SizedBox(height: 50),
+            const SizedBox(height: 200),
             SizedBox(
                 // label para primeiro número
                 width: 300,
@@ -166,6 +204,9 @@ class StateB extends State<TelaB> {
                     ),
                   ],
                 )),
+            _result != ""
+                ? Text('Token: ${_result}')
+                : const SizedBox.shrink(), // espaço vazio
           ],
         ),
       ),
@@ -179,24 +220,17 @@ class TelaC extends StatefulWidget {
 }
 
 class StateC extends State<TelaC> {
-  List<dynamic> dataList = [''];
-  // método assíncrono para consumir informações de uma api
+  List<dynamic> dataList = [];
+
   Future<void> fetchData() async {
-    // realiza a requisição
     final response =
-        await http.get(Uri.parse('http://demo1670899.mockable.io/val'));
-    // verifica êxito da requisição
+        await http.get(Uri.parse('http://demo7630410.mockable.io/notasAlunos'));
     if (response.statusCode == 200) {
-      // converte resposta em objeto json
-      // final jsonResponse = ;
-      
-      // atualiza state
+      final jsonResponse = json.decode(response.body);
       setState(() {
-        dataList = jsonDecode(response.body);
+        dataList = jsonResponse['data'];
       });
-      
     } else {
-      // erro na requisição
       print('Request failed with status: ${response.statusCode}.');
     }
   }
@@ -207,79 +241,103 @@ class StateC extends State<TelaC> {
     fetchData();
   }
 
+  void _menor60() {
+    setState(() {
+      dataList = dataList.where((element) => element['nota'] < 60).toList();
+    });
+  }
+
+  void _maior60() {
+    setState(() {
+      dataList = dataList
+          .where((element) => element['nota'] >= 60 && element['nota'] < 100)
+          .toList();
+    });
+  }
+
+  void _100() {
+    setState(() {
+      dataList = dataList.where((element) => element['nota'] == 100).toList();
+    });
+  }
+
+  void _reload() {
+    fetchData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('API Response Demo'),
-        ),
-        body: ListView.builder(
-          itemCount: dataList.length, // Quantidade de itens na lista.
-          itemBuilder: (BuildContext context, int index) {
-            final item = dataList[index]; // Obtem o item atual da lista.
-
-            // Retorna um container com estilo condicional baseado no ID.
-            return Container(
-              margin:
-                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-              decoration: BoxDecoration(
-                color: item['id'] % 2 == 0
-                    ? const Color.fromARGB(255, 16, 235, 16)
-                    : const Color.fromARGB(
-                        255, 15, 180, 205), // Cores alternadas.
-                borderRadius: BorderRadius.circular(10.0), // Borda arredondada.
-              ),
-              child: ListTile(
-                title: Text('Name:${item['id']} '), // Nome do usuário.
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Username:${item['id']}',
-                        style: TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-
-
-class TelaD extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Tela D')),
-      body: Align(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
+        body: Column(
           children: [
-            // Espaço entre o texto e a imagem
-            Image.network(
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMyFsZ5sV7Bb2KdP56_lWbKkvxEijuWIlQRw&s',
-              width: 200,
-              height: 200,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Pedido Confirmado',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: ListView.builder(
+                itemCount: dataList.length, // Number of items in the list.
+                itemBuilder: (BuildContext context, int index) {
+                  final item = dataList[index]; // Current item from the list.
+                  // Returns a container with conditional styling based on 'nota'.
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: item['nota'] < 60
+                          ? const Color.fromARGB(255, 207, 204, 0)
+                          : item['nota'] >= 60 && item['nota'] < 100
+                              ? const Color.fromARGB(255, 2, 153, 177)
+                              : const Color.fromARGB(
+                                  255, 25, 221, 7), // Alternating colors.
+                      borderRadius:
+                          BorderRadius.circular(10.0), // Rounded borders.
+                    ),
+                    child: ListTile(
+                      title: Text('Nome: ${item['nome']}'), // User's name.
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Nota: ${item['nota']}',
+                              style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 50),
-            ElevatedButton(
-              child: Text('Voltar'),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/telaB');
-              },
+            Align(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    // Button row
+                    width: 700,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _menor60,
+                          child: const Text('<60'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _maior60,
+                          child: const Text('>=60'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _100,
+                          child: const Text('100'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _reload,
+                          child: const Text('Reset'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                ],
+              ),
             ),
           ],
         ),
